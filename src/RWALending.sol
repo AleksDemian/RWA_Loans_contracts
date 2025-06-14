@@ -170,11 +170,11 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
      * @return loanAmount Original loan amount
      * @return interest Current interest amount
      */
-    function getRepaymentAmount(uint256 _tokenId, address _borrower) external view returns (
-        uint256 totalDue,
-        uint256 loanAmount,
-        uint256 interest
-    ) {
+    function getRepaymentAmount(uint256 _tokenId, address _borrower)
+        external
+        view
+        returns (uint256 totalDue, uint256 loanAmount, uint256 interest)
+    {
         LoanDetails storage loan = loans[_tokenId][_borrower];
         if (!loan.isActive) revert NothingToRepay();
 

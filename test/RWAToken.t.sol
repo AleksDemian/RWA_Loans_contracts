@@ -20,11 +20,7 @@ contract RWATokenTest is Test {
         vm.startPrank(alice);
 
         uint256 tokenId = token.tokenizeGold(
-            100,
-            999,
-            "CERT123",
-            "Vault A, Box 42",
-            "ipfs://bafybeihcv7mvyxze27p2x5ic3w26nro6kok26cs54be4xsq2xaif2qrkla"
+            100, 999, "CERT123", "Vault A, Box 42", "ipfs://bafybeihcv7mvyxze27p2x5ic3w26nro6kok26cs54be4xsq2xaif2qrkla"
         );
 
         assertEq(token.ownerOf(tokenId), alice);
@@ -76,13 +72,7 @@ contract RWATokenTest is Test {
         vm.startPrank(alice);
 
         vm.expectRevert("Weight must be greater than 0");
-        token.tokenizeGold(
-            0,
-            999,
-            "CERT123",
-            "Vault A, Box 42",
-            testURI
-        );
+        token.tokenizeGold(0, 999, "CERT123", "Vault A, Box 42", testURI);
 
         vm.stopPrank();
     }
@@ -90,13 +80,7 @@ contract RWATokenTest is Test {
     function test_TokenizeGoldAndSetURI() public {
         vm.startPrank(alice);
 
-        uint256 tokenId = token.tokenizeGold(
-            100,
-            999,
-            "CERT123",
-            "Vault A",
-            testURI
-        );
+        uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", testURI);
 
         assertEq(token.ownerOf(tokenId), alice, "Wrong token owner");
 
@@ -116,13 +100,7 @@ contract RWATokenTest is Test {
     function test_RevertWhen_TokenizeGoldWithInvalidURI() public {
         vm.startPrank(alice);
 
-        token.tokenizeGold(
-            100,
-            999,
-            "CERT123",
-            "Vault A",
-            ""
-        );
+        token.tokenizeGold(100, 999, "CERT123", "Vault A", "");
     }
 
     function test_TokenizeGoldAndTransfer() public {

@@ -16,20 +16,15 @@ contract RWALendingTest is Test {
     address public alice = makeAddr("alice");
     address public bob = makeAddr("bob");
     uint256 public constant INITIAL_BALANCE = 1000000 * 1e18;
-    uint256 public constant GOLD_PRICE = 2000 * 1e8; 
-    uint32 public constant HEARTBEAT = 3600; 
+    uint256 public constant GOLD_PRICE = 2000 * 1e8;
+    uint32 public constant HEARTBEAT = 3600;
 
     function setUp() public {
         stablecoin = new MockERC20("Stablecoin", "STB", 18);
         token = new RWAToken();
         priceFeed = new MockChainlinkAggregator(8, int256(GOLD_PRICE));
 
-        lending = new RWALending(
-            address(stablecoin),
-            address(token),
-            address(priceFeed),
-            500
-        );
+        lending = new RWALending(address(stablecoin), address(token), address(priceFeed), 500);
 
         stablecoin.mint(alice, INITIAL_BALANCE);
         stablecoin.mint(bob, INITIAL_BALANCE);
@@ -52,13 +47,7 @@ contract RWALendingTest is Test {
 
     function test_CalculateCollateralValue() public {
         vm.startPrank(alice);
-        uint256 tokenId = token.tokenizeGold(
-            100,
-            999,
-            "CERT123",
-            "Vault A",
-            "ipfs://Qm..."
-        );
+        uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", "ipfs://Qm...");
         vm.stopPrank();
 
         uint256 collateralValue = lending.calculateCollateralValue(tokenId);
@@ -268,7 +257,7 @@ contract RWALendingTest is Test {
         vm.startPrank(alice);
         uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", "ipfs://Qm...");
         token.approve(address(lending), tokenId);
-        
+
         lending.createLoan(tokenId);
 
         (uint256 totalDue, uint256 loanAmount, uint256 interest) = lending.getRepaymentAmount(tokenId, alice);
@@ -282,7 +271,7 @@ contract RWALendingTest is Test {
         vm.startPrank(alice);
         uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", "ipfs://Qm...");
         token.approve(address(lending), tokenId);
-        
+
         lending.createLoan(tokenId);
 
         vm.warp(block.timestamp + 30 days);
@@ -297,7 +286,7 @@ contract RWALendingTest is Test {
     function test_GetRepaymentAmount_RevertWhen_NoLoan() public {
         vm.startPrank(alice);
         uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", "ipfs://Qm...");
-        
+
         vm.expectRevert(RWALending.NothingToRepay.selector);
         lending.getRepaymentAmount(tokenId, alice);
         vm.stopPrank();
@@ -307,7 +296,7 @@ contract RWALendingTest is Test {
         vm.startPrank(alice);
         uint256 tokenId = token.tokenizeGold(100, 999, "CERT123", "Vault A", "ipfs://Qm...");
         token.approve(address(lending), tokenId);
-        
+
         lending.createLoan(tokenId);
         stablecoin.approve(address(lending), 4501 * 1e18);
         lending.repayLoan(tokenId);
