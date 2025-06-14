@@ -7,7 +7,6 @@ import {console} from "forge-std/console.sol";
 
 contract DeployScript is Script {
     function run() public returns (RWAToken) {
-        
         vm.startBroadcast();
 
         RWAToken token = new RWAToken();
@@ -18,4 +17,4 @@ contract DeployScript is Script {
 
         return token;
     }
-} 
+}
