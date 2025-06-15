@@ -25,15 +25,24 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
 
     IERC20 public immutable stablecoin;
     RWAToken public immutable token;
+
     AggregatorV3Interface public goldPriceFeed;
     uint256 public interestRate; // in base points (1% = 100)
-    uint32 public priceFeedHeartbeat; // price update time
+
     uint256 public totalLoans;
     uint256 public baseInterestRate;
 
     mapping(uint256 => mapping(address => LoanDetails)) public loans;
     mapping(uint256 => uint256) public tokenToLoanId;
     mapping(address => uint256[]) public userLoans;
+
+    bool public paused;
+
+    error ContractPaused();
+    error ContractNotPaused();
+
+    event Paused(address account);
+    event Unpaused(address account);
 
     event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 amount, uint256 collateralTokenId);
     event LoanRepaid(uint256 indexed loanId, uint256 amount);
@@ -48,6 +57,16 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
     error NothingToRepay();
     error OnlyRWATokenSupported();
 
+    modifier whenNotPaused() {
+        if (paused) revert ContractPaused();
+        _;
+    }
+
+    modifier whenPaused() {
+        if (!paused) revert ContractNotPaused();
+        _;
+    }
+
     constructor(address _stablecoin, address _token, address _goldPriceFeed, uint256 _interestRate)
         Ownable(msg.sender)
     {
@@ -60,7 +79,7 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
     /**
      * @dev Create a new loan
      */
-    function createLoan(uint256 _tokenId) external nonReentrant returns (uint256) {
+    function createLoan(uint256 _tokenId) external nonReentrant whenNotPaused returns (uint256) {
         if (loans[_tokenId][msg.sender].isActive) revert AlreadyBorrowed(msg.sender, _tokenId);
 
         uint256 collateralValue = calculateCollateralValue(_tokenId);
@@ -90,7 +109,7 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
     /**
      * @dev Repay a loan
      */
-    function repayLoan(uint256 _tokenId) external nonReentrant {
+    function repayLoan(uint256 _tokenId) external nonReentrant whenNotPaused {
         LoanDetails storage loan = loans[_tokenId][msg.sender];
         if (!loan.isActive) revert NothingToRepay();
 
@@ -188,5 +207,15 @@ contract RWALending is IERC721Receiver, ReentrancyGuard, Ownable {
             revert OnlyRWATokenSupported();
         }
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() external onlyOwner whenPaused {
+        paused = false;
+        emit Unpaused(msg.sender);
     }
 }
